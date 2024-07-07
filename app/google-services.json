@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "301305374229",
+    "firebase_url": "https://todoapps-ef197-default-rtdb.firebaseio.com",
+    "project_id": "todoapps-ef197",
+    "storage_bucket": "todoapps-ef197.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:301305374229:android:1b096ef24355bb236c101c",
+        "android_client_info": {
+          "package_name": "com.example.googlesignin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "301305374229-49ee36f00410cg4jkebudb3d3npf9ump.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRYQixo2WNeZG2IYamGY2PpPUPhNLrfNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "301305374229-49ee36f00410cg4jkebudb3d3npf9ump.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:301305374229:android:fa502b84527e72116c101c",
+        "android_client_info": {
+          "package_name": "com.surendramaran.yolov8tflite"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "301305374229-49ee36f00410cg4jkebudb3d3npf9ump.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRYQixo2WNeZG2IYamGY2PpPUPhNLrfNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "301305374229-49ee36f00410cg4jkebudb3d3npf9ump.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:301305374229:android:ab49280f8d7c8f016c101c",
+        "android_client_info": {
+          "package_name": "com.techmania.todoapps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "301305374229-49ee36f00410cg4jkebudb3d3npf9ump.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRYQixo2WNeZG2IYamGY2PpPUPhNLrfNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "301305374229-49ee36f00410cg4jkebudb3d3npf9ump.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
