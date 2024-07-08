@@ -39,7 +39,7 @@ class SigninActivity : AppCompatActivity() {
                     if (it.isSuccessful){
                         Toast.makeText(this,"Successfully sign in ",Toast.LENGTH_SHORT).show()
                         //go to another activity
-                        val intent= Intent(this,HomeActivity::class.java)
+                        val intent= Intent(this,MainHomeActivity::class.java)
                         startActivity(intent)
                         finish()
 
