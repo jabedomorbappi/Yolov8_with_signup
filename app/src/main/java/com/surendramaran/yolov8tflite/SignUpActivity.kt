@@ -2,27 +2,24 @@ package com.surendramaran.yolov8tflite
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.Patterns
 import android.widget.Button
 import android.widget.Toast
-//import com.example.googlesignin.databinding.ActivitySignupBinding
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.Firebase
-//import com.google.firebase.auth.Firebase
 import com.google.firebase.auth.FirebaseAuth
-
-
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.auth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.ktx.Firebase
 import com.surendramaran.yolov8tflite.databinding.ActivitySignupBinding
 
 class SignUpActivity : AppCompatActivity() {
-
 
     companion object {
         private const val RC_SIGN_IN = 9001
@@ -30,65 +27,32 @@ class SignUpActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var binding: ActivitySignupBinding
-
-
-
+    private val db = FirebaseDatabase.getInstance().reference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_signup)
-        // set view binding
-
-        binding=ActivitySignupBinding.inflate(layoutInflater)
-        setContentView((binding.root))
+        binding = ActivitySignupBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         auth = Firebase.auth
-        //btnsignup
 
-
-        binding.buttonSignup.setOnClickListener{
-            val email=binding.etEmail.text.toString()
-            val pass=binding.etPassword.text.toString()
-            val confPass=binding.etConfirmPassword.text.toString()
-            if (checkAllField())
-            {
-                auth.createUserWithEmailAndPassword(email,pass).addOnCompleteListener(this){
-                    //if sucessfull acc is created
-                    // is also signed in
-                    if (it.isSuccessful)
-                    {
-                        auth.signOut()
-                        Toast.makeText(this,"acc created successfully",Toast.LENGTH_SHORT).show()
-                        intent=Intent(this,SigninActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    }
-                    else
-                    {
-                        Log.e("error",it.exception.toString())
-
-                    }
-
-
-                }
+        binding.buttonSignup.setOnClickListener {
+            val name = binding.etName.text.toString()
+            val phone = binding.etPhone.text.toString()
+            val email = binding.etEmail.text.toString()
+            val pass = binding.etPassword.text.toString()
+            val confPass = binding.etConfirmPassword.text.toString()
+            if (checkAllFields(name, phone, email, pass, confPass)) {
+                createUser(name, phone, email, pass)
             }
-
-
         }
-
-
 
         val currentUser = auth.currentUser
-
         if (currentUser != null) {
-            // The user is already signed in, navigate to MainActivity
-            val intent = Intent(this, AnotherActivity::class.java)
+            val intent = Intent(this, MainHomeActivity::class.java)
             startActivity(intent)
-            finish() // finish the current activity to prevent the user from coming back to the SignInActivity using the back button
+            finish()
         }
-
-
-
 
         val signInButton = findViewById<Button>(R.id.signInButton)
         signInButton.setOnClickListener {
@@ -102,82 +66,130 @@ class SignUpActivity : AppCompatActivity() {
             .requestEmail()
             .build()
 
-        val googleSignInClient = GoogleSignIn.getClient(this, gso)
-        val signInIntent = googleSignInClient.signInIntent
+        val signInIntent = GoogleSignIn.getClient(this, gso).signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == RC_SIGN_IN) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)
-                firebaseAuthWithGoogle(account.idToken!!)
+                firebaseAuthWithGoogle(account!!)
             } catch (e: ApiException) {
-                Toast.makeText(this, "Google sign in failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Google sign-in failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    Toast.makeText(this, "Signed in as ${user?.displayName}", Toast.LENGTH_SHORT).show()
-
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
-                } else {
-                    Toast.makeText(this, "Authentication failed", Toast.LENGTH_SHORT).show()
+    private fun firebaseAuthWithGoogle(account: GoogleSignInAccount) {
+        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+        auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                val user = auth.currentUser
+                val userInfo = mapOf(
+                    "name" to (user?.displayName ?: ""),
+                    "phone" to "", // Google sign-in doesn't provide phone number
+                    "email" to (user?.email ?: "")
+                )
+                user?.let {
+                    db.child("users").child(it.uid)
+                        .setValue(userInfo)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Signed in as ${user.displayName}", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this, MainHomeActivity::class.java))
+                            finish()
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("RealtimeDatabase", "Error adding user: $exception")
+                            Toast.makeText(this, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        }
                 }
+            } else {
+                Toast.makeText(this, "Authentication failed", Toast.LENGTH_SHORT).show()
             }
+        }
     }
 
-    //  @SuppressLint("SuspiciousIndentation")
     @SuppressLint("SuspiciousIndentation")
-    private fun checkAllField():Boolean{
-        val email=binding.etEmail.text.toString()
-
-
-        if (binding.etEmail.text.toString()=="")
-        {
-            binding.textInputLayoutEmail.error="this is required fail"
+    private fun checkAllFields(name: String, phone: String, email: String, pass: String, confPass: String): Boolean {
+        if (name.isEmpty()) {
+            binding.textInputLayoutName.error = "This field is required"
             return false
         }
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches())
-        {
-            binding.textInputLayoutEmail.error="check the email format"
+        if (phone.isEmpty()) {
+            binding.textInputLayoutPhone.error = "This field is required"
             return false
         }
-        // also note pass should be at least 6 character
-        if (binding.etPassword.text.toString()==""){
-            binding.textInputLayoutPassword.error="this is required fill"
-            binding.textInputLayoutPassword.errorIconDrawable=null
+        if (!Patterns.PHONE.matcher(phone).matches()) {
+            binding.textInputLayoutPhone.error = "Invalid phone number"
             return false
         }
-
-        if (binding.etPassword.length()<=6){
-            binding.textInputLayoutPassword.error="pass at least 6 character"
-            binding.textInputLayoutPassword.errorIconDrawable=null
+        if (email.isEmpty()) {
+            binding.textInputLayoutEmail.error = "This field is required"
             return false
         }
-
-        if (binding.etConfirmPassword.text.toString()==""){
-            binding.textInputLayoutPassword.error="this is required fill"
-            binding.textInputLayoutConfirmPassword.errorIconDrawable=null
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.textInputLayoutEmail.error = "Invalid email format"
             return false
         }
-
-        if (binding.etPassword.text.toString()!=binding.etConfirmPassword.text.toString()){
-            binding.textInputLayoutPassword.error="password do not match"
+        if (pass.isEmpty()) {
+            binding.textInputLayoutPassword.error = "This field is required"
+            binding.textInputLayoutPassword.errorIconDrawable = null
+            return false
+        }
+        if (pass.length < 6) {
+            binding.textInputLayoutPassword.error = "Password must be at least 6 characters"
+            binding.textInputLayoutPassword.errorIconDrawable = null
+            return false
+        }
+        if (confPass.isEmpty()) {
+            binding.textInputLayoutConfirmPassword.error = "This field is required"
+            binding.textInputLayoutConfirmPassword.errorIconDrawable = null
+            return false
+        }
+        if (pass != confPass) {
+            binding.textInputLayoutPassword.error = "Passwords do not match"
             return false
         }
         return true
+    }
 
-
+    private fun createUser(name: String, phone: String, email: String, pass: String) {
+        auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                val user = auth.currentUser
+                user?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
+                    if (verificationTask.isSuccessful) {
+                        val userInfo = mapOf(
+                            "name" to name,
+                            "phone" to phone,
+                            "email" to email
+                        )
+                        user.let {
+                            db.child("users").child(it.uid)
+                                .setValue(userInfo)
+                                .addOnSuccessListener {
+                                    auth.signOut()
+                                    Toast.makeText(this, "Account created. Please verify your email.", Toast.LENGTH_SHORT).show()
+                                    val intent = Intent(this, SigninActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
+                                }
+                                .addOnFailureListener { exception ->
+                                    Log.e("RealtimeDatabase", "Error adding user: $exception")
+                                    Toast.makeText(this, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    } else {
+                        Toast.makeText(this, "Failed to send verification email.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Log.e("Error", task.exception.toString())
+                Toast.makeText(this, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
