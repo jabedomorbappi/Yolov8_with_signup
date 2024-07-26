@@ -17,6 +17,12 @@
         android:theme="@style/Theme.YOLOv8TfLite"
         tools:targetApi="31">
         <activity
+            android:name=".youtube.EmbeddedYoutubeMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".datepicker.DatePieckerMainActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainHomeActivity"
             android:exported="false" />
         <activity
